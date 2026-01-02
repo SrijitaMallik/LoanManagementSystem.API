@@ -22,69 +22,44 @@ namespace LoanManagementSystem.API.Controllers
             _emiService = emiService;
         }
 
-        [HttpGet("pending-loans")]
-        public IActionResult GetPendingLoans()
+        // Get all pending loan applications
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingLoans()
         {
-            var loans = _context.LoanApplications
+            var loans = await _context.LoanApplications
                 .Include(l => l.LoanType)
                 .Where(l => l.Status == "Pending")
-                .ToList();
+                .ToListAsync();
 
             return Ok(loans);
         }
 
-        [Authorize(Roles = "LoanOfficer")]
+        // Verify / Approve / Reject loan + EMI generation
         [HttpPut("verify/{id}")]
-        public async Task<IActionResult> VerifyLoan(int id, [FromBody] VerifyLoanDto dto)
+        public async Task<IActionResult> VerifyLoan(int id, [FromBody] VerifyLoanDTO dto)
         {
             var loan = await _context.LoanApplications
                 .Include(l => l.LoanType)
-                .FirstOrDefaultAsync(l => l.LoanId == id);
+                .FirstOrDefaultAsync(l => l.LoanApplicationId == id);
 
             if (loan == null)
                 return NotFound("Loan not found");
 
-            if (loan.Status != "Pending")
-                return BadRequest("Loan already processed");
+            loan.IsVerified = true;
+            loan.VerificationRemarks = dto.Remarks;
+            loan.Status = dto.IsApproved ? "Approved" : "Rejected";
 
-            if (!dto.IsApproved)
+            if (dto.IsApproved)
             {
-                if (string.IsNullOrWhiteSpace(dto.Remarks))
-                    return BadRequest("Remarks are required when rejecting a loan");
-
-                loan.Status = "Rejected";
-                loan.Remarks = dto.Remarks;
-
-                await _context.SaveChangesAsync();
-                return Ok("Loan Rejected");
+                loan.EmiAmount = _emiService.CalculateEmi(
+                    loan.LoanAmount,
+                    loan.TenureMonths,
+                    loan.LoanType!.InterestRate   // 🔥 correct source
+                );
             }
 
-            loan.Status = "Approved";
-            loan.ApprovedDate = DateTime.UtcNow;
-            loan.Remarks = dto.Remarks;
-
-            var emiAmount = _emiService.CalculateEMI(
-                loan.LoanAmount,
-                loan.LoanType.InterestRate,
-                loan.TenureMonths
-            );
-
-            for (int i = 1; i <= loan.TenureMonths; i++)
-            {
-                _context.EMIs.Add(new EMI
-                {
-                    LoanId = loan.LoanId,
-                    InstallmentNumber = i,
-                    DueDate = DateTime.UtcNow.AddMonths(i),
-                    EMIAmount = emiAmount,
-                    IsPaid = false
-                });
-            }
-
-            loan.Status = "Active";
             await _context.SaveChangesAsync();
-
-            return Ok("Loan Approved & EMI Schedule Generated");
+            return Ok(loan);
         }
     }
 }

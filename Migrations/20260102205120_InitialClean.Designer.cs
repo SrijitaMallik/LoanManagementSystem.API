@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LoanManagementSystem.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260102094026_AddLoanNavigation")]
-    partial class AddLoanNavigation
+    [Migration("20260102205120_InitialClean")]
+    partial class InitialClean
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -46,9 +46,6 @@ namespace LoanManagementSystem.API.Migrations
                     b.Property<bool>("IsPaid")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("LoanApplicationLoanId")
-                        .HasColumnType("int");
-
                     b.Property<int>("LoanId")
                         .HasColumnType("int");
 
@@ -56,8 +53,6 @@ namespace LoanManagementSystem.API.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("EMIId");
-
-                    b.HasIndex("LoanApplicationLoanId");
 
                     b.HasIndex("LoanId");
 
@@ -81,8 +76,14 @@ namespace LoanManagementSystem.API.Migrations
                     b.Property<DateTime?>("ApprovedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
                     b.Property<int>("LoanTypeId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -103,23 +104,20 @@ namespace LoanManagementSystem.API.Migrations
 
             modelBuilder.Entity("LoanManagementSystem.API.Models.LoanApplication", b =>
                 {
-                    b.Property<int>("LoanId")
+                    b.Property<int>("LoanApplicationId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LoanId"));
-
-                    b.Property<DateTime>("AppliedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ApprovedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("ApprovedDate")
-                        .HasColumnType("datetime2");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LoanApplicationId"));
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("EmiAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
 
                     b.Property<decimal>("LoanAmount")
                         .HasPrecision(18, 2)
@@ -132,9 +130,6 @@ namespace LoanManagementSystem.API.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("Remarks")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -142,7 +137,14 @@ namespace LoanManagementSystem.API.Migrations
                     b.Property<int>("TenureMonths")
                         .HasColumnType("int");
 
-                    b.HasKey("LoanId");
+                    b.Property<string>("VerificationRemarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("LoanApplicationId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("LoanTypeId");
 
                     b.ToTable("LoanApplications");
                 });
@@ -250,10 +252,6 @@ namespace LoanManagementSystem.API.Migrations
 
             modelBuilder.Entity("LoanManagementSystem.API.Models.EMI", b =>
                 {
-                    b.HasOne("LoanManagementSystem.API.Models.LoanApplication", null)
-                        .WithMany("EMIs")
-                        .HasForeignKey("LoanApplicationLoanId");
-
                     b.HasOne("LoanManagementSystem.API.Models.Loan", "Loan")
                         .WithMany()
                         .HasForeignKey("LoanId")
@@ -276,7 +274,21 @@ namespace LoanManagementSystem.API.Migrations
 
             modelBuilder.Entity("LoanManagementSystem.API.Models.LoanApplication", b =>
                 {
-                    b.Navigation("EMIs");
+                    b.HasOne("LoanManagementSystem.API.Models.User", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LoanManagementSystem.API.Models.LoanType", "LoanType")
+                        .WithMany()
+                        .HasForeignKey("LoanTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("LoanType");
                 });
 #pragma warning restore 612, 618
         }

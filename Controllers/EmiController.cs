@@ -22,18 +22,20 @@ public class EmiController : ControllerBase
     [HttpGet("my-emis")]
     public async Task<IActionResult> GetMyEmis()
     {
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-        var emis = await _context.EMIs
-            .Include(e => e.Loan)
-            .Where(e => e.Loan.UserId == userId)
-            .Select(e => new
+        var emis = await _context.LoanApplications
+            .Include(l => l.LoanType)
+            .Where(l => l.CustomerId == userId && l.Status == "Approved")
+            .Select(l => new
             {
-                e.EMIId,
-                e.InstallmentNumber,
-                e.EMIAmount,
-                e.DueDate,
-                e.IsPaid
+                l.LoanApplicationId,
+                LoanType = l.LoanType!.LoanTypeName,
+                l.LoanAmount,
+                l.TenureMonths,
+                InterestRate = l.LoanType.InterestRate,
+                Emi = l.EmiAmount,
+                l.Status
             })
             .ToListAsync();
 
@@ -41,16 +43,24 @@ public class EmiController : ControllerBase
     }
 
     // PAY EMI
-    [HttpPut("{id}/pay")]
-    public async Task<IActionResult> PayEmi(int id)
+    [HttpPut("{loanApplicationId}/pay")]
+    public async Task<IActionResult> PayEmi(int loanApplicationId)
     {
-        var emi = await _context.EMIs.FindAsync(id);
-        if (emi == null || emi.IsPaid) return BadRequest("Invalid EMI");
+        int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-        emi.IsPaid = true;
-        emi.PaidDate = DateTime.UtcNow;
+        var loan = await _context.LoanApplications
+            .FirstOrDefaultAsync(l => l.LoanApplicationId == loanApplicationId && l.CustomerId == userId);
+
+        if (loan == null)
+            return NotFound("Loan not found");
+
+        if (loan.Status != "Approved")
+            return BadRequest("Loan not approved yet");
+
+        // EMI paid → Close loan
+        loan.Status = "Closed";
 
         await _context.SaveChangesAsync();
-        return Ok("EMI Paid Successfully");
+        return Ok("EMI Paid Successfully. Loan Closed.");
     }
 }

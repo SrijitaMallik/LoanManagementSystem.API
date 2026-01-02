@@ -8,6 +8,7 @@ using System.Security.Claims;
 
 namespace LoanManagementSystem.API.Controllers
 {
+    [Authorize(Roles = "Customer")]
     [ApiController]
     [Route("api/loans")]
     public class LoanController : ControllerBase
@@ -19,44 +20,38 @@ namespace LoanManagementSystem.API.Controllers
             _context = context;
         }
 
-        // CUSTOMER → APPLY LOAN
-        [Authorize(Roles = "Customer")]
+        // Apply Loan
         [HttpPost("apply")]
         public async Task<IActionResult> ApplyLoan(LoanApplyDTO dto)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-                return Unauthorized("UserId not found in token");
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            int userId = int.Parse(userIdClaim.Value);
-
-            var loan = new LoanApplication
+            var application = new LoanApplication
             {
                 CustomerId = userId,
                 LoanTypeId = dto.LoanTypeId,
                 LoanAmount = dto.LoanAmount,
                 TenureMonths = dto.TenureMonths,
                 MonthlyIncome = dto.MonthlyIncome,
-                Status = "Pending",
-                AppliedDate = DateTime.UtcNow
+                Status = "Pending"
             };
 
-            _context.LoanApplications.Add(loan);
+            _context.LoanApplications.Add(application);
             await _context.SaveChangesAsync();
 
-            return Ok("Loan Applied Successfully");
+            return Ok("Loan applied successfully");
         }
 
-        // CUSTOMER → VIEW OWN LOANS
-        [Authorize(Roles = "Customer")]
-        [HttpGet("my-loans")]
-        public IActionResult MyLoans()
+        // Get my loan applications
+        [HttpGet("my-applications")]
+        public async Task<IActionResult> GetMyLoans()
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var loans = _context.LoanApplications
-                .Where(l => l.CustomerId == userId)
-                .ToList();
+            var loans = await _context.LoanApplications
+                .Include(x => x.LoanType)
+                .Where(x => x.CustomerId == userId)
+                .ToListAsync();
 
             return Ok(loans);
         }

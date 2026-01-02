@@ -7,8 +7,7 @@ public class EMI
 {
     public int EMIId { get; set; }
     public int LoanId { get; set; }
-    public Loan Loan { get; set; }
-
+    public Loan? Loan { get; set; }
     public int InstallmentNumber { get; set; }
     public DateTime DueDate { get; set; }
     public decimal EMIAmount { get; set; }

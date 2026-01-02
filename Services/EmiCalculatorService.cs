@@ -1,13 +1,16 @@
-﻿namespace LoanManagementSystem.API.Services;
+﻿using System;
 
-public class EmiCalculatorService
+namespace LoanManagementSystem.API.Services
 {
-    public decimal CalculateEMI(decimal principal, decimal annualRate, int months)
+    public class EmiCalculatorService
     {
-        var r = annualRate / 12 / 100;
-        var emi = principal * r * (decimal)Math.Pow((double)(1 + r), months)
-                / ((decimal)Math.Pow((double)(1 + r), months) - 1);
+        public decimal CalculateEmi(decimal amount, int months, decimal rate)
+        {
+            decimal monthlyRate = rate / 12 / 100;
+            decimal pow = (decimal)Math.Pow((double)(1 + monthlyRate), months);
 
-        return Math.Round(emi, 2);
+            decimal emi = (amount * monthlyRate * pow) / (pow - 1);
+            return Math.Round(emi, 2);
+        }
     }
 }
