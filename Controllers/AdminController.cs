@@ -1,6 +1,7 @@
 ﻿using LoanManagementSystem.API.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LoanManagementSystem.API.Controllers;
 
@@ -78,4 +79,65 @@ public class AdminController : ControllerBase
         _context.SaveChanges();
         return Ok("Loan Rejected");
     }
+    [Authorize(Roles = "Admin")]
+    [HttpGet("reports/loans-by-status")]
+    public async Task<IActionResult> LoansByStatus()
+    {
+        var data = await _context.LoanApplications
+            .GroupBy(l => l.Status)
+            .Select(g => new
+            {
+                status = g.Key,
+                count = g.Count()
+            }).ToListAsync();
+
+        return Ok(data);
+    }
+    [Authorize(Roles = "Admin")]
+    [HttpGet("reports/active-vs-closed")]
+    public async Task<IActionResult> ActiveVsClosed()
+    {
+        var active = await _context.LoanApplications.CountAsync(l => l.Status == "Approved");
+        var closed = await _context.LoanApplications.CountAsync(l => l.Status == "Closed");
+
+        return Ok(new { active, closed });
+    }
+    [Authorize(Roles = "Admin")]
+    [HttpGet("reports/emi-overdue")]
+    public async Task<IActionResult> EmiOverdue()
+    {
+        var overdue = await _context.EmiSchedules
+            .Include(e => e.LoanApplication)
+            .Where(e => !e.IsPaid && e.DueDate < DateTime.Now)
+            .Select(e => new
+            {
+                e.LoanApplicationId,
+                e.MonthNumber,
+                e.EmiAmount,
+                e.DueDate
+            }).ToListAsync();
+
+        return Ok(overdue);
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("reports/customer-summary")]
+    public async Task<IActionResult> CustomerSummary()
+    {
+        var data = await _context.LoanApplications
+            .GroupBy(l => l.CustomerId)
+            .Select(g => new
+            {
+                customerId = g.Key,
+                totalLoans = g.Count(),
+                activeLoans = g.Count(x => x.Status == "Approved"),
+                rejectedLoans=g.Count(x=>x.Status=="Rejected"),
+                closedLoans = g.Count(x => x.Status == "Closed"),
+                totalAmount = g.Sum(x => x.LoanAmount)
+            }).ToListAsync();
+
+        return Ok(data);
+    }
+
+
 }
