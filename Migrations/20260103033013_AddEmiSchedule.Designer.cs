@@ -4,6 +4,7 @@ using LoanManagementSystem.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LoanManagementSystem.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260103033013_AddEmiSchedule")]
+    partial class AddEmiSchedule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -236,31 +239,6 @@ namespace LoanManagementSystem.API.Migrations
                     b.HasKey("PaymentId");
 
                     b.ToTable("Payments");
-                });
-
-            modelBuilder.Entity("LoanManagementSystem.API.Models.Receipt", b =>
-                {
-                    b.Property<int>("ReceiptId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReceiptId"));
-
-                    b.Property<int>("EmiScheduleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LoanApplicationId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("PaidAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("PaidOn")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ReceiptId");
-
-                    b.ToTable("Receipts");
                 });
 
             modelBuilder.Entity("LoanManagementSystem.API.Models.User", b =>

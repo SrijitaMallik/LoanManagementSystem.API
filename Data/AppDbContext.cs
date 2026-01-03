@@ -13,6 +13,9 @@ namespace LoanManagementSystem.API.Data
         public DbSet<EMI> EMIs => Set<EMI>();
 
         public DbSet<Loan> Loans { get; set; }
+        public DbSet<EmiSchedule> EmiSchedules { get; set; }
+        public DbSet<Receipt> Receipts { get; set; }
+
 
         public DbSet<Payment> Payments { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)

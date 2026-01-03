@@ -51,12 +51,25 @@ namespace LoanManagementSystem.API.Controllers
 
             if (dto.IsApproved)
             {
-                loan.EmiAmount = _emiService.CalculateEmi(
+                var emi = _emiService.CalculateEmi(
                     loan.LoanAmount,
                     loan.TenureMonths,
-                    loan.LoanType!.InterestRate   // 🔥 correct source
+                    loan.LoanType.InterestRate
                 );
+
+                for (int i = 1; i <= loan.TenureMonths; i++)
+                {
+                    _context.EmiSchedules.Add(new EmiSchedule
+                    {
+                        LoanApplicationId = loan.LoanApplicationId,
+                        MonthNumber = i,
+                        EmiAmount = emi,
+                        DueDate = DateTime.Now.AddMonths(i)
+                    });
+
+                }
             }
+
 
             await _context.SaveChangesAsync();
             return Ok(loan);
