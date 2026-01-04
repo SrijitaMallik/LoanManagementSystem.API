@@ -37,17 +37,19 @@ namespace LoanManagementSystem.API.Controllers
             };
 
             _context.LoanApplications.Add(application);
+            await _context.SaveChangesAsync();     // ⭐ VERY IMPORTANT ⭐
+
             await LoanNotificationQueue.Channel.Writer.WriteAsync(new LoanNotificationEvent
             {
-                LoanId = application.LoanApplicationId,
+                LoanId = application.LoanApplicationId,   // Now correct ID
                 UserId = userId,
                 Title = "Loan Applied",
                 Message = "Your loan application has been submitted successfully and is under review."
             });
 
-
             return Ok("Loan applied successfully");
         }
+
 
         // Get my loan applications
         [HttpGet("my-applications")]
@@ -56,11 +58,19 @@ namespace LoanManagementSystem.API.Controllers
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             var loans = await _context.LoanApplications
-                .Include(x => x.LoanType)
                 .Where(x => x.CustomerId == userId)
+                .Select(x => new
+                {
+                    x.LoanApplicationId,
+                    x.Status,
+                    x.LoanAmount,
+                    x.TenureMonths
+                })
                 .ToListAsync();
 
             return Ok(loans);
         }
+
     }
 }
+

@@ -108,18 +108,19 @@ public class EmiController : ControllerBase
         return Ok($"EMI for Month {nextEmi.MonthNumber} paid successfully.");
     }
 
-    [HttpGet("{loanApplicationId}/outstanding")]
-    public async Task<IActionResult> GetOutstanding(int loanApplicationId)
+    [HttpGet("{loanId}/outstanding")]
+    public async Task<IActionResult> GetOutstanding(int loanId)
     {
-        int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var loan = await _context.LoanApplications.FindAsync(loanId);
+        if (loan == null) return NotFound();
 
-        var emis = await _context.EmiSchedules
-            .Where(e => e.LoanApplicationId == loanApplicationId && !e.IsPaid)
-            .ToListAsync();
+        var emi = await _context.EmiSchedules
+            .Where(e => e.LoanApplicationId == loanId && !e.IsPaid)
+            .SumAsync(e => e.EmiAmount);
 
-        decimal outstanding = emis.Sum(e => e.EmiAmount);
-        return Ok(new { outstanding });
+        return Ok(new { outstanding = emi });
     }
+
     [HttpGet("{loanApplicationId}/receipts")]
     public async Task<IActionResult> GetReceipts(int loanApplicationId)
     {
