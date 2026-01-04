@@ -11,6 +11,7 @@ namespace LoanManagementSystem.API.Data
         public DbSet<LoanType> LoanTypes { get; set; }
         public DbSet<LoanApplication> LoanApplications { get; set; }
         public DbSet<EMI> EMIs => Set<EMI>();
+        public DbSet<LoanNotification> LoanNotifications { get; set; }
 
         public DbSet<Loan> Loans { get; set; }
         public DbSet<EmiSchedule> EmiSchedules { get; set; }

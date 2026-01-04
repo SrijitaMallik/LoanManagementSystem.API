@@ -66,10 +66,28 @@ namespace LoanManagementSystem.API.Controllers
                         EmiAmount = emi,
                         DueDate = DateTime.Now.AddMonths(i)
                     });
-
                 }
-            }
 
+                // 🔔 APPROVED notification
+                await LoanNotificationQueue.Channel.Writer.WriteAsync(new LoanNotificationEvent
+                {
+                    LoanId = loan.LoanApplicationId,
+                    UserId = loan.CustomerId,
+                    Title = "Loan Approved",
+                    Message = "Congratulations! Your loan has been approved."
+                });
+            }
+            else
+            {
+                // 🔔 REJECTED notification
+                await LoanNotificationQueue.Channel.Writer.WriteAsync(new LoanNotificationEvent
+                {
+                    LoanId = loan.LoanApplicationId,
+                    UserId = loan.CustomerId,
+                    Title = "Loan Rejected",
+                    Message = "Sorry, your loan application has been rejected."
+                });
+            }
 
             await _context.SaveChangesAsync();
             return Ok(loan);

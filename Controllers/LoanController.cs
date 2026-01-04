@@ -37,7 +37,14 @@ namespace LoanManagementSystem.API.Controllers
             };
 
             _context.LoanApplications.Add(application);
-            await _context.SaveChangesAsync();
+            await LoanNotificationQueue.Channel.Writer.WriteAsync(new LoanNotificationEvent
+            {
+                LoanId = application.LoanApplicationId,
+                UserId = userId,
+                Title = "Loan Applied",
+                Message = "Your loan application has been submitted successfully and is under review."
+            });
+
 
             return Ok("Loan applied successfully");
         }

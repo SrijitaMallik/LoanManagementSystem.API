@@ -62,7 +62,6 @@ public class EmiController : ControllerBase
         if (loan.Status != "Approved")
             return BadRequest("Loan not approved");
 
-        // Get next unpaid EMI
         var nextEmi = await _context.EmiSchedules
             .Where(e => e.LoanApplicationId == loanApplicationId && !e.IsPaid)
             .OrderBy(e => e.MonthNumber)
@@ -71,7 +70,6 @@ public class EmiController : ControllerBase
         if (nextEmi == null)
             return BadRequest("All EMIs already paid");
 
-        // Pay this EMI
         nextEmi.IsPaid = true;
         _context.Receipts.Add(new Receipt
         {
@@ -80,16 +78,36 @@ public class EmiController : ControllerBase
             PaidAmount = nextEmi.EmiAmount
         });
 
-        // If this was last EMI → close loan
+        // 🔔 EMI PAID notification
+        await LoanNotificationQueue.Channel.Writer.WriteAsync(new LoanNotificationEvent
+        {
+            LoanId = loanApplicationId,
+            UserId = userId,
+            Title = "EMI Paid",
+            Message = $"Your EMI for month {nextEmi.MonthNumber} has been paid successfully."
+        });
+
         bool allPaid = !_context.EmiSchedules
             .Any(e => e.LoanApplicationId == loanApplicationId && !e.IsPaid);
 
         if (allPaid)
+        {
             loan.Status = "Closed";
+
+            // 🔔 LOAN CLOSED notification
+            await LoanNotificationQueue.Channel.Writer.WriteAsync(new LoanNotificationEvent
+            {
+                LoanId = loanApplicationId,
+                UserId = userId,
+                Title = "Loan Closed",
+                Message = "Your loan has been closed successfully. Thank you!"
+            });
+        }
 
         await _context.SaveChangesAsync();
         return Ok($"EMI for Month {nextEmi.MonthNumber} paid successfully.");
     }
+
     [HttpGet("{loanApplicationId}/outstanding")]
     public async Task<IActionResult> GetOutstanding(int loanApplicationId)
     {
