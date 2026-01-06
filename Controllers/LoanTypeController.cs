@@ -26,7 +26,7 @@ namespace LoanManagementSystem.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetLoanTypes()
         {
             return Ok(await _context.LoanTypes.ToListAsync());
         }

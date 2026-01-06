@@ -1,4 +1,5 @@
 ﻿using LoanManagementSystem.API.Data;
+using LoanManagementSystem.API.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,66 +21,73 @@ public class AdminController : ControllerBase
     // ---------------- PENDING OFFICERS ----------------
 
     [HttpGet("pending-officers")]
-    public IActionResult PendingOfficers()
+    public async Task<IActionResult> PendingOfficers()
     {
-        var officers = _context.Users
+        var officers = await _context.Users
             .Where(x => x.Role == "LoanOfficer" && !x.IsApproved)
             .Select(x => new { x.UserId, x.FullName, x.Email })
-            .ToList();
+            .ToListAsync();
 
         return Ok(officers);
     }
 
     [HttpPut("approve-officer/{id}")]
-    public IActionResult ApproveOfficer(int id)
+    public async Task<IActionResult> ApproveOfficer(int id)
     {
-        var officer = _context.Users.Find(id);
+        var officer = await _context.Users.FindAsync(id);
         if (officer == null) return NotFound();
 
         officer.IsApproved = true;
         officer.IsActive = true;
-        _context.SaveChanges();
-        return Ok("Loan Officer Approved");
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Loan Officer Approved" });
     }
 
     [HttpDelete("reject-officer/{id}")]
-    public IActionResult RejectOfficer(int id)
+    public async Task<IActionResult> RejectOfficer(int id)
     {
-        var officer = _context.Users.Find(id);
+        var officer = await _context.Users.FindAsync(id);
         if (officer == null) return NotFound();
 
         _context.Users.Remove(officer);
-        _context.SaveChanges();
-        return Ok("Loan Officer Rejected");
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Loan Officer Rejected" });
     }
+
 
     // ---------------- LOANS ----------------
 
     [HttpGet("verified-loans")]
-    public IActionResult VerifiedLoans()
+    public async Task<IActionResult> VerifiedLoans()
     {
-        return Ok(_context.LoanApplications.Where(x => x.Status == "Verified").ToList());
+        var loans = await _context.LoanApplications
+            .Where(x => x.Status == "Verified")
+            .ToListAsync();
+
+        return Ok(loans);
     }
 
     [HttpPut("approve-loan/{id}")]
-    public IActionResult ApproveLoan(int id)
+    public async Task<IActionResult> ApproveLoan(int id)
     {
-        var loan = _context.LoanApplications.Find(id);
+        var loan = await _context.LoanApplications.FindAsync(id);
         if (loan == null) return NotFound();
 
         loan.Status = "Approved";
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
         return Ok("Loan Approved");
     }
 
     [HttpPut("reject-loan/{id}")]
-    public IActionResult RejectLoan(int id)
+    public async Task<IActionResult> RejectLoan(int id)
     {
-        var loan = _context.LoanApplications.Find(id);
+        var loan = await _context.LoanApplications.FindAsync(id);
         if (loan == null) return NotFound();
 
         loan.Status = "Rejected";
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
         return Ok("Loan Rejected");
     }
 
@@ -99,11 +107,11 @@ public class AdminController : ControllerBase
     [HttpGet("reports/active-vs-closed")]
     public async Task<IActionResult> ActiveVsClosed()
     {
-        return Ok(new
-        {
-            active = await _context.LoanApplications.CountAsync(x => x.Status == "Approved"),
-            closed = await _context.LoanApplications.CountAsync(x => x.Status == "Closed")
-        });
+        var active = await _context.LoanApplications.CountAsync(x => x.Status == "Approved");
+        var closed = await _context.LoanApplications.CountAsync(x =>
+            x.Status == "Closed" || x.Status == "Paid" || x.Status == "Completed");
+
+        return Ok(new { active, closed });
     }
 
     [HttpGet("reports/customer-summary")]
@@ -119,8 +127,43 @@ public class AdminController : ControllerBase
                 rejectedLoans = g.Count(x => x.Status == "Rejected"),
                 closedLoans = g.Count(x => x.Status == "Closed"),
                 totalAmount = g.Sum(x => x.LoanAmount)
-            }).ToListAsync();
+            })
+            .ToListAsync();
 
         return Ok(data);
     }
+    // ---------------- LOAN TYPES ----------------
+
+    [HttpGet("loan-types")]
+    public async Task<IActionResult> GetLoanTypes()
+    {
+        return Ok(await _context.LoanTypes.Where(x => x.IsActive).ToListAsync());
+    }
+
+    [HttpPut("loan-types/{id}")]
+    public async Task<IActionResult> LoanType(int id, LoanTypeDTO dto)
+    {
+        var loan = await _context.LoanTypes.FindAsync(id);
+        if (loan == null) return NotFound();
+
+        loan.LoanTypeName = dto.LoanTypeName;
+        loan.InterestRate = dto.InterestRate;
+        loan.MinAmount = dto.MinAmount;
+        loan.MaxAmount = dto.MaxAmount;
+        loan.MaxTenureMonths = dto.MaxTenureMonths;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Loan type updated successfully" });
+    }
+
+
+    [HttpGet("loan-types/{id}")]
+    public async Task<IActionResult> GetLoanTypeById(int id)
+    {
+        var loan = await _context.LoanTypes.FindAsync(id);
+        if (loan == null) return NotFound();
+        return Ok(loan);
+    }
+
 }

@@ -93,8 +93,8 @@ public class EmiController : ControllerBase
         if (allPaid)
         {
             loan.Status = "Closed";
+            _context.LoanApplications.Update(loan);   // 🔥 THIS LINE FIXES EVERYTHING
 
-            // 🔔 LOAN CLOSED notification
             await LoanNotificationQueue.Channel.Writer.WriteAsync(new LoanNotificationEvent
             {
                 LoanId = loanApplicationId,

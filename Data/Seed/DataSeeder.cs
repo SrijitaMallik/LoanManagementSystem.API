@@ -22,10 +22,12 @@ public static class DataSeeder
         if (!context.LoanTypes.Any())
         {
             context.LoanTypes.AddRange(
-                new LoanType { LoanTypeName = "Personal Loan", InterestRate = 12, MinAmount = 50000, MaxAmount = 500000, MaxTenureMonths = 36, IsActive = true },
-                new LoanType { LoanTypeName = "Education Loan", InterestRate = 9, MinAmount = 100000, MaxAmount = 2000000, MaxTenureMonths = 60, IsActive = true },
-                new LoanType { LoanTypeName = "Home Loan", InterestRate = 7, MinAmount = 500000, MaxAmount = 50000000, MaxTenureMonths = 240, IsActive = true }
-            );
+    new LoanType { LoanTypeName = "Personal Loan", InterestRate = 10.5m, MinAmount = 5000, MaxAmount = 500000, MaxTenureMonths = 36, IsActive = true },
+    new LoanType { LoanTypeName = "Home Loan", InterestRate = 8.5m, MinAmount = 500000, MaxAmount = 5000000, MaxTenureMonths = 240, IsActive = true },
+    new LoanType { LoanTypeName = "Vehicle Loan", InterestRate = 9.25m, MinAmount = 100000, MaxAmount = 1500000, MaxTenureMonths = 60, IsActive = true },
+    new LoanType { LoanTypeName = "Education Loan", InterestRate = 7.6m, MinAmount = 100000, MaxAmount = 3000000, MaxTenureMonths = 120, IsActive = true }
+);
+
         }
 
         context.SaveChanges();

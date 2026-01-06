@@ -4,6 +4,7 @@ using LoanManagementSystem.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LoanManagementSystem.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260105174208_AddLoanTypes")]
+    partial class AddLoanTypes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,9 +54,6 @@ namespace LoanManagementSystem.API.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("OutstandingAmount")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -63,9 +63,6 @@ namespace LoanManagementSystem.API.Migrations
 
                     b.Property<string>("VerificationRemarks")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("VerifiedOn")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("LoanApplicationId");
 
@@ -133,9 +130,6 @@ namespace LoanManagementSystem.API.Migrations
 
                     b.Property<int>("MonthNumber")
                         .HasColumnType("int");
-
-                    b.Property<DateTime?>("PaidOn")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("EmiScheduleId");
 

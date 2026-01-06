@@ -4,6 +4,7 @@ using LoanManagementSystem.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LoanManagementSystem.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260105120916_CreateLoanTypes")]
+    partial class CreateLoanTypes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,60 +24,6 @@ namespace LoanManagementSystem.API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("LoanApplication", b =>
-                {
-                    b.Property<int>("LoanApplicationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LoanApplicationId"));
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("EmiAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("IsVerified")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("LoanAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("LoanTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("MonthlyIncome")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("OutstandingAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TenureMonths")
-                        .HasColumnType("int");
-
-                    b.Property<string>("VerificationRemarks")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("VerifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("LoanApplicationId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("LoanTypeId");
-
-                    b.ToTable("LoanApplications");
-                });
 
             modelBuilder.Entity("LoanManagementSystem.API.Models.EMI", b =>
                 {
@@ -134,9 +83,6 @@ namespace LoanManagementSystem.API.Migrations
                     b.Property<int>("MonthNumber")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("PaidOn")
-                        .HasColumnType("datetime2");
-
                     b.HasKey("EmiScheduleId");
 
                     b.HasIndex("LoanApplicationId");
@@ -186,6 +132,54 @@ namespace LoanManagementSystem.API.Migrations
                     b.HasIndex("LoanTypeId");
 
                     b.ToTable("Loans");
+                });
+
+            modelBuilder.Entity("LoanManagementSystem.API.Models.LoanApplication", b =>
+                {
+                    b.Property<int>("LoanApplicationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LoanApplicationId"));
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("EmiAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("LoanAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("LoanTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MonthlyIncome")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TenureMonths")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VerificationRemarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("LoanApplicationId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("LoanTypeId");
+
+                    b.ToTable("LoanApplications");
                 });
 
             modelBuilder.Entity("LoanManagementSystem.API.Models.LoanNotification", b =>
@@ -349,25 +343,6 @@ namespace LoanManagementSystem.API.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("LoanApplication", b =>
-                {
-                    b.HasOne("LoanManagementSystem.API.Models.User", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LoanManagementSystem.API.Models.LoanType", "LoanType")
-                        .WithMany()
-                        .HasForeignKey("LoanTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("LoanType");
-                });
-
             modelBuilder.Entity("LoanManagementSystem.API.Models.EMI", b =>
                 {
                     b.HasOne("LoanManagementSystem.API.Models.Loan", "Loan")
@@ -381,7 +356,7 @@ namespace LoanManagementSystem.API.Migrations
 
             modelBuilder.Entity("LoanManagementSystem.API.Models.EmiSchedule", b =>
                 {
-                    b.HasOne("LoanApplication", "LoanApplication")
+                    b.HasOne("LoanManagementSystem.API.Models.LoanApplication", "LoanApplication")
                         .WithMany()
                         .HasForeignKey("LoanApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -397,6 +372,25 @@ namespace LoanManagementSystem.API.Migrations
                         .HasForeignKey("LoanTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("LoanType");
+                });
+
+            modelBuilder.Entity("LoanManagementSystem.API.Models.LoanApplication", b =>
+                {
+                    b.HasOne("LoanManagementSystem.API.Models.User", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LoanManagementSystem.API.Models.LoanType", "LoanType")
+                        .WithMany()
+                        .HasForeignKey("LoanTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
 
                     b.Navigation("LoanType");
                 });

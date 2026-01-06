@@ -37,15 +37,16 @@ namespace LoanManagementSystem.API.Controllers
                 Role = dto.Role
             };
 
-            if (dto.Role == "Customer" || dto.Role == "Admin")
+            // 👇 Proper role based activation logic
+            if (dto.Role == "LoanOfficer")
             {
-                user.IsApproved = true;
-                user.IsActive = true;
+                user.IsApproved = false;   // Admin approval needed
+                user.IsActive = false;
             }
             else
             {
-                user.IsApproved = false;
-                user.IsActive = false;
+                user.IsApproved = true;
+                user.IsActive = true;
             }
 
             _context.Users.Add(user);
@@ -70,9 +71,10 @@ namespace LoanManagementSystem.API.Controllers
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Role, user.Role)
-            };
+        new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+        new Claim(ClaimTypes.Role, user.Role),
+        new Claim("role", user.Role)   // 👈 VERY IMPORTANT
+    };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSettings:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -81,10 +83,14 @@ namespace LoanManagementSystem.API.Controllers
                 issuer: _config["JwtSettings:Issuer"],
                 audience: _config["JwtSettings:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(60),
+                expires: DateTime.Now.AddHours(2),
                 signingCredentials: creds);
 
-            return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                role = user.Role
+            });
         }
     }
 }

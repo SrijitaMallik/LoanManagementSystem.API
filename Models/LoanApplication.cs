@@ -1,28 +1,23 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using LoanManagementSystem.API.Models;
 
-namespace LoanManagementSystem.API.Models
+public class LoanApplication
 {
-    public class LoanApplication
-    {
-        public int LoanApplicationId { get; set; }
+    public int LoanApplicationId { get; set; }
+    public int CustomerId { get; set; }
+    public int LoanTypeId { get; set; }
+    public User Customer { get; set; }
+    public LoanType LoanType { get; set; }   // ADD
 
-        public int CustomerId { get; set; }
-        public User Customer { get; set; }
+    public decimal LoanAmount { get; set; }
+    public int TenureMonths { get; set; }
+    public decimal MonthlyIncome { get; set; }
 
-        public int LoanTypeId { get; set; }
-        public LoanType LoanType { get; set; }
+    public string Status { get; set; } = "Pending";
+    public bool IsVerified { get; set; }
+    public string? VerificationRemarks { get; set; }
 
-        public decimal LoanAmount { get; set; }
-        public int TenureMonths { get; set; }
-        public decimal MonthlyIncome { get; set; }
+    public decimal EmiAmount { get; set; }
+    public decimal OutstandingAmount { get; set; }
+    public DateTime? VerifiedOn { get; set; }
 
-        public string Status { get; set; } = "Pending";
-
-        // 🔥 Missing fields added
-        public bool IsVerified { get; set; } = false;
-        public string? VerificationRemarks { get; set; }
-        public decimal EmiAmount { get; set; } = 0;
-    }
 }
-

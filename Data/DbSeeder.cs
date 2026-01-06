@@ -14,7 +14,6 @@ namespace LoanManagementSystem.API.Data
                     Email = "admin@lms.com",
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
                     Role = "Admin",
-                    IsApproved = true,
                     IsActive = true
                 });
 

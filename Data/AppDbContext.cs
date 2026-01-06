@@ -16,7 +16,7 @@ namespace LoanManagementSystem.API.Data
         public DbSet<Loan> Loans { get; set; }
         public DbSet<EmiSchedule> EmiSchedules { get; set; }
         public DbSet<Receipt> Receipts { get; set; }
-
+        public DbSet<LoanType> LoanType { get; set; }
 
         public DbSet<Payment> Payments { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -41,6 +41,25 @@ namespace LoanManagementSystem.API.Data
 
             modelBuilder.Entity<Payment>()
                 .Property(x => x.PaidAmount).HasPrecision(18, 2);
+
+            modelBuilder.Entity<Loan>()
+       .Property(x => x.Amount)
+       .HasPrecision(18, 2);
+
+            modelBuilder.Entity<LoanApplication>()
+                .Property(x => x.EmiAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<EmiSchedule>()
+                .Property(x => x.EmiAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Receipt>()
+                .Property(x => x.PaidAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<LoanType>().ToTable("LoanType");
+
 
             base.OnModelCreating(modelBuilder);
         }
