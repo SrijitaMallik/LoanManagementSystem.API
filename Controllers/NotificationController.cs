@@ -22,7 +22,7 @@ namespace LoanManagementSystem.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetMyNotifications()
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             var data = await _context.LoanNotifications
                         .Where(x => x.UserId == userId)
@@ -43,5 +43,7 @@ namespace LoanManagementSystem.API.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
+
+
     }
 }
