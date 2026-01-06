@@ -1,5 +1,6 @@
 ﻿using LoanManagementSystem.API.Data;
 using LoanManagementSystem.API.DTOs;
+using LoanManagementSystem.API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -165,5 +166,37 @@ public class AdminController : ControllerBase
         if (loan == null) return NotFound();
         return Ok(loan);
     }
+    // ---------- DISABLE LOAN TYPE ----------
+    [HttpDelete("loan-types/{id}")]
+    public async Task<IActionResult> DisableLoanType(int id)
+    {
+        var loan = await _context.LoanTypes.FindAsync(id);
+        if (loan == null) return NotFound();
+
+        loan.IsActive = false;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Loan Type Disabled" });
+    }
+    // ---------- ADD LOAN TYPE ----------
+    [HttpPost("loan-types")]
+    public async Task<IActionResult> AddLoanType(LoanTypeDTO dto)
+    {
+        var loan = new LoanType
+        {
+            LoanTypeName = dto.LoanTypeName,
+            InterestRate = dto.InterestRate,
+            MinAmount = dto.MinAmount,
+            MaxAmount = dto.MaxAmount,
+            MaxTenureMonths = dto.MaxTenureMonths,
+            IsActive = true
+        };
+
+        _context.LoanTypes.Add(loan);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Loan Type Added Successfully" });
+    }
+
 
 }
